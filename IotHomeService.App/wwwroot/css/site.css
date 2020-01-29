@@ -1,0 +1,279 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+a, .btn-link {
+    color: #0366d6;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+app {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.top-row {
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.main {
+    flex: 1;
+}
+
+.main .top-row {
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #d6d5d5;
+    justify-content: flex-end;
+}
+
+.main .top-row > a {
+    margin-left: 1.5rem;
+}
+
+.sidebar {
+    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+}
+
+.sidebar .top-row {
+    background-color: rgba(0,0,0,0.4);
+}
+
+.sidebar .navbar-brand {
+    font-size: 1.1rem;
+}
+
+.sidebar .oi {
+    width: 2rem;
+    font-size: 1.1rem;
+    vertical-align: text-top;
+    top: -2px;
+}
+
+.nav-item {
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+}
+
+.nav-item:first-of-type {
+    padding-top: 1rem;
+}
+
+.nav-item:last-of-type {
+    padding-bottom: 1rem;
+}
+
+.nav-item a {
+    color: #d7d7d7;
+    border-radius: 4px;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    line-height: 3rem;
+}
+
+.nav-item a.active {
+    background-color: rgba(255,255,255,0.25);
+    color: white;
+}
+
+.nav-item a:hover {
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.navbar-toggler {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+@media (max-width: 767.98px) {
+    .main .top-row {
+        display: none;
+    }
+}
+
+@media (min-width: 768px) {
+    app {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .main .top-row {
+        position: sticky;
+        top: 0;
+    }
+
+    .main > div {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+
+    .navbar-toggler {
+        display: none;
+    }
+
+    .sidebar .collapse {
+        /* Never collapse the sidebar for wide screens */
+        display: block;
+    }
+}
+
+div.select-filter-type {
+    display: inline-block;
+}
+
+div.filter-by-date {
+    display: inline-block;
+}
+
+div.filter-by-time {
+    display: inline-block;
+}
+
+div.filter-by-date button {
+    margin-top: -4px;
+}
+
+div.filter-by-date,.filter-by-time span {
+    font-weight: bold;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+div.filter-by-time select {
+    width: 200px;
+    margin-top: -3px
+}
+
+div.filter-by-time button {
+    margin-top: -3px;
+}
+
+div.date-time-component select.custom-select:nth-child(3) {
+    margin-left: -2px;
+}
+
+div.date-time-component {
+    display: inline-block;
+}
+
+div.date-time-component input.form-control {
+    width: 170px;
+    display: inline-block;
+}
+
+div.date-time-component select.custom-select {
+    width: 60px;
+    display: inline-block;
+    margin-top: -3px;
+}
+
+.overlay {
+    position: fixed;
+    display: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 2;
+    cursor: pointer;
+}
+
+.spinner-border {
+    margin-top: 25%;
+}
+
+div.line-selector {
+    text-align: center;
+    margin-top: 5px;
+}
+
+span.red .custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: rgb(255, 99, 132) !important;
+}
+
+span.red .custom-checkbox .custom-control-input:checked:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(255, 99, 132, 0.25)
+}
+
+span.blue .custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: rgb(54, 162, 235) !important;
+}
+
+span.blue .custom-checkbox .custom-control-input:checked:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(54, 162, 235, 0.25)
+}
+
+span.yellow .custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: rgb(255, 206, 86) !important;
+}
+
+span.yellow .custom-checkbox .custom-control-input:checked:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(255, 206, 86, 0.25)
+}
+
+span.navy .custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: rgb(75, 192, 192) !important;
+}
+
+span.navy .custom-checkbox .custom-control-input:checked:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(75, 192, 192, 0.25)
+}
+
+span.purple .custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: rgb(153, 102, 255) !important;
+}
+
+span.purple .custom-checkbox .custom-control-input:checked:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(153, 102, 255, 0.25)
+}
+
+span.orange .custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: rgb(255, 159, 64) !important;
+}
+
+span.orange .custom-checkbox .custom-control-input:checked:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(255, 159, 64, 0.25)
+}
+
+.custom-checkbox .custom-control-input:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(0, 0, 0, 0.25)
+}
+
+.custom-checkbox .custom-control-input:active ~ .custom-control-label::before {
+    background-color: #C8FFC8;
+}
