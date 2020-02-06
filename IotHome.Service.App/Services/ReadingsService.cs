@@ -53,7 +53,7 @@ namespace IotHome.Service.App.Services
             var result = new List<SensorReading>();
             foreach (var readingTime in Enumerable.Range(0, (int)Math.Ceiling(window / samplingWindow) + 1).Select(i => from.AddMinutes(i * samplingWindow)))
             {
-                var matching = readings.Where(r => Math.Abs((r.EnqueuedTimeUtc - readingTime).TotalMinutes) <= (samplingWindow / 2)).ToList();
+                var matching = readings.Where(r => Math.Abs((r.EnqueuedTimeUtc - readingTime).TotalMinutes) <= Math.Ceiling(samplingWindow / 2f)).ToList();
                 var localTime = TimeZoneInfo.ConvertTime(readingTime, _configuration.ApplicationTimeZone);
 
                 result.Add(new SensorReading(localTime,
