@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Globalization
 @using Blazorise.Components;
 @using IotHome.Service.App.Models
 @using IotHome.Service.App.Services.Interfaces
@@ -9,64 +10,41 @@
 @implements IDisposable;
 
 <Spinner @ref="_spinner" />
-<CascadingValue Value="_spinner">
-    <div class="select-filter-type">
-        <CheckEdit RadioGroup="filterType" Checked="@IsRelativeChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Relative))">Relative</CheckEdit>
-        <CheckEdit RadioGroup="filterType" Checked="@IsAbsoluteChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Absolute))">Absolute</CheckEdit>
-    </div>
 
-    @if (IsAbsoluteChecked)
+<div class="card-columns">
+    @foreach (var readingByPlace in _readingsByPlace)
     {
-        <div class="filter-by-date">
-            <span>from</span>
-            <DateTimeField @bind-DateTime="_from" />
-            <span>to</span>
-            <DateTimeField @bind-DateTime="_to" />
-            <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
-        </div>
+        <Card>
+            <CardBody>
+                <CardTitle Size="5">@readingByPlace.Key</CardTitle>
+                <CardText>
+                    @foreach (var reading in readingByPlace.Value)
+                    {
+                        <div class="reading-type">@reading.Key.Type</div>
+                        <div class="reading-value">@reading.Value.Value?.ToString("00.0")</div>
+                        <div class="reading-unit">@GetUnit(reading.Key)</div>
+                    }
+                </CardText>
+            </CardBody>
+        </Card>
     }
-
-    @if (IsRelativeChecked)
-    {
-        <div class="filter-by-time">
-            <span>last</span>
-            <SelectList Data="@_relativeOptions" TextField="@(item => item.Text)" ValueField="@(item => item.Value)" SelectedValueChanged="@OnRelativeTimeChanged" />
-            <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
-        </div>
-    }
-
-    <MyChart @ref="_decimalChart" />
-</CascadingValue>
+</div>
 
 @code {
-    private static readonly IList<SelectValue<int>> _relativeOptions = new[]
-    {
-        new SelectValue<int>(60, "1h"), new SelectValue<int>(120, "2h"), new SelectValue<int>(240, "4h"),
-        new SelectValue<int>(480, "8h"), new SelectValue<int>(720, "12h"), new SelectValue<int>(1440, "24h")
-    };
-
     private Spinner _spinner;
-    private MyChart _decimalChart;
 
-    private int _relativeMinutes = _relativeOptions.First().Value;
-    private FilterType _filterType = FilterType.Relative;
-    private DateTime _from = DateTime.Today;
-    private DateTime _to = DateTime.Today.AddDays(1);
-
-    private bool IsAbsoluteChecked => _filterType == FilterType.Absolute;
-    private bool IsRelativeChecked => _filterType == FilterType.Relative;
+    private IDictionary<string, Dictionary<SensorDetails, SensorReading>> _readingsByPlace = new Dictionary<string, Dictionary<SensorDetails, SensorReading>>();
 
     protected override void OnInitialized()
     {
         ReadingsNotifier.NewReadingsAppeared += OnNewReadingsAppeared;
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Force refresh spinner to child components
-            StateHasChanged();
+            await RefreshDetails();
         }
     }
 
@@ -75,43 +53,35 @@
         ReadingsNotifier.NewReadingsAppeared -= OnNewReadingsAppeared;
     }
 
+    private static string GetUnit(SensorDetails details)
+    {
+        switch (details.Type)
+        {
+            case "temperature":
+                return "°C";
+            case "humidity":
+                return "%";
+            default:
+                return string.Empty;
+        }
+    }
+
     private async Task OnNewReadingsAppeared(SensorDetails sensor, SensorReading reading)
     {
         await InvokeAsync(async () =>
         {
-            if (reading.Date >= _from && reading.Date <= _to)
-            {
-                await OnFilterClicked();
-            }
+            await RefreshDetails();
         });
     }
 
-    private async Task OnFilterClicked()
+    private async Task RefreshDetails()
     {
-        // TODO: set max window size (maybe 1 week)
-        if (IsAbsoluteChecked && _to >= _from)
+        using (_spinner.ShowSpinner())
         {
-            await _decimalChart.ShowChart(_from, _to);
-            return;
-        }
+            var readings = await ReadingsService.GetLatestReadingsAsync();
+            _readingsByPlace = readings.GroupBy(r => r.Key.Name).ToDictionary(r => r.Key, r => r.ToDictionary(x => x.Key, x => x.Value));
 
-        if (IsRelativeChecked)
-        {
-            var now = DateTime.UtcNow;
-            await _decimalChart.ShowChart(now.AddMinutes(-_relativeMinutes), now);
+            StateHasChanged();
         }
-    }
-
-    private void OnFilterTypeChanged(bool check, FilterType filterType)
-    {
-        if (check)
-        {
-            _filterType = filterType;
-        }
-    }
-
-    private void OnRelativeTimeChanged(object newValue)
-    {
-        _relativeMinutes = int.Parse(newValue.ToString());
     }
 }

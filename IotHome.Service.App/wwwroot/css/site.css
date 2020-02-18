@@ -149,6 +149,25 @@ app {
     }
 }
 
+@font-face {
+    font-family: dseg7;
+    src: url('/fonts/DSEG7ClassicMini-Regular.woff');
+}
+
+div.reading-unit {
+    display: inline;
+}
+
+div.reading-type {
+
+}
+
+div.reading-value {
+    font-family: dseg7;
+    font-size: xx-large;
+    display: inline;
+}
+
 div.select-filter-type {
     display: inline-block;
 }

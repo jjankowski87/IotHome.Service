@@ -1,8 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using IotHome.Service.App.Configuration;
-using IotHome.Service.Services.Interfaces;
+using IotHome.Service.App.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IotHome.Service.App.Controllers
@@ -12,12 +11,12 @@ namespace IotHome.Service.App.Controllers
     public class ReadingsController : ControllerBase
     {
         private readonly AppConfiguration _configuration;
-        private readonly IStorageExplorer _storageExplorer;
+        private readonly IReadingsService _readingsService;
 
-        public ReadingsController(AppConfiguration configuration, IStorageExplorer storageExplorer)
+        public ReadingsController(AppConfiguration configuration, IReadingsService readingsService)
         {
             _configuration = configuration;
-            _storageExplorer = storageExplorer;
+            _readingsService = readingsService;
         }
 
         [HttpGet("{sensorType}")]
@@ -39,10 +38,10 @@ namespace IotHome.Service.App.Controllers
 
         private async Task<decimal?> GetLatestAsync(string sensorType)
         {
-            var details = await _storageExplorer.ListSensorDetailsAsync(DateTimeOffset.Now.AddMinutes(-15), DateTimeOffset.Now);
-            var latest = details.Where(d => d.Body.Sensor == sensorType).OrderByDescending(d => d.EnqueuedTimeUtc).FirstOrDefault();
+            var latestReadings = await _readingsService.GetLatestReadingsAsync();
+            var matching = latestReadings.FirstOrDefault(r => r.Key.Type == sensorType);
 
-            return latest?.Body.Value;
+            return matching.Value?.Value;
         }
     }
 }

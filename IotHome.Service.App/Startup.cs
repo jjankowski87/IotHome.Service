@@ -5,6 +5,7 @@ using Blazorise.Icons.FontAwesome;
 using IotHome.Service.App.Configuration;
 using IotHome.Service.App.Services;
 using IotHome.Service.App.Services.Interfaces;
+using IotHome.Service.App.Utils;
 using IotHome.Service.Model;
 using IotHome.Service.Services;
 using IotHome.Service.Services.Interfaces;
@@ -35,6 +36,7 @@ namespace IotHome.Service.App
             services.AddSingleton(GetConfiguration<StorageConfiguration>("StorageConfiguration"));
             services.AddSingleton(GetConfiguration<RawAppConfiguration>("AppConfiguration"));
             services.AddSingleton<AppConfiguration>();
+            services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
             services.AddSingleton<IReadingsNotifier, ReadingsNotifier>();
             services.AddScoped<IStorageExplorer, StorageExplorer>();

@@ -7,6 +7,8 @@ namespace IotHome.Service.App.Services.Interfaces
 {
     public interface IReadingsService
     {
+        Task<IDictionary<SensorDetails, SensorReading>> GetLatestReadingsAsync();
+
         Task<IDictionary<SensorDetails, IList<SensorReading>>> GetReadingsAsync(DateTime fromDate, DateTime toDate);
     }
 }

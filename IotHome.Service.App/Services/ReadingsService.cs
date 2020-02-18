@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using IotHome.Service.App.Configuration;
 using IotHome.Service.App.Services.Interfaces;
+using IotHome.Service.App.Utils;
 using IotHome.Service.Model;
 using IotHome.Service.Services.Interfaces;
 
@@ -21,12 +22,23 @@ namespace IotHome.Service.App.Services
         };
 
         private readonly IStorageExplorer _storageExplorer;
+        private readonly IDateTimeProvider _dateTimeProvider;
         private readonly AppConfiguration _configuration;
 
-        public ReadingsService(IStorageExplorer storageExplorer, AppConfiguration configuration)
+        public ReadingsService(IStorageExplorer storageExplorer, IDateTimeProvider dateTimeProvider, AppConfiguration configuration)
         {
             _storageExplorer = storageExplorer;
+            _dateTimeProvider = dateTimeProvider;
             _configuration = configuration;
+        }
+
+        public async Task<IDictionary<SensorDetails, SensorReading>> GetLatestReadingsAsync()
+        {
+            var utcNow = _dateTimeProvider.UtcNow;
+            var readings = await _storageExplorer.ListSensorDetailsAsync(utcNow.AddMinutes(-30), utcNow.AddHours(1));
+
+            return readings.GroupBy(r => new SensorDetails(r.Body.Sensor, r.Body.Name))
+                .ToDictionary(g => g.Key, GetLatestReading);
         }
 
         public async Task<IDictionary<SensorDetails, IList<SensorReading>>> GetReadingsAsync(DateTime fromDate, DateTime toDate)
@@ -91,6 +103,12 @@ namespace IotHome.Service.App.Services
             }
 
             return (int)matchingWindow.Value.TotalMinutes;
+        }
+
+        private static SensorReading GetLatestReading(IEnumerable<IotMessage<Reading>> readings)
+        {
+            var latest = readings.OrderByDescending(r => r.EnqueuedTimeUtc).First();
+            return new SensorReading(latest.EnqueuedTimeUtc, latest.Body.Value);
         }
     }
 }
