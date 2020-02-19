@@ -11,32 +11,39 @@
 
 <Spinner @ref="_spinner" />
 <CascadingValue Value="_spinner">
-    <div class="select-filter-type">
-        <CheckEdit RadioGroup="filterType" Checked="@IsRelativeChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Relative))">Relative</CheckEdit>
-        <CheckEdit RadioGroup="filterType" Checked="@IsAbsoluteChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Absolute))">Absolute</CheckEdit>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="select-filter-type">
+                    <CheckEdit RadioGroup="filterType" Checked="@IsRelativeChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Relative))">Relative</CheckEdit>
+                    <CheckEdit RadioGroup="filterType" Checked="@IsAbsoluteChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Absolute))">Absolute</CheckEdit>
+                </div>
+
+                @if (IsAbsoluteChecked)
+                {
+                    <div class="filter-by-date">
+                        <span>from</span>
+                        <DateTimeField @bind-DateTime="_from" />
+                        <span>to</span>
+                        <DateTimeField @bind-DateTime="_to" />
+                        <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
+                    </div>
+                }
+
+                @if (IsRelativeChecked)
+                {
+                    <div class="filter-by-time">
+                        <span>last</span>
+                        <SelectList Data="@_relativeOptions" TextField="@(item => item.Text)" ValueField="@(item => item.Value)" SelectedValueChanged="@OnRelativeTimeChanged" />
+                        <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <HistoryCharts @ref="_historyCharts" />
+        </div>
     </div>
-
-    @if (IsAbsoluteChecked)
-    {
-        <div class="filter-by-date">
-            <span>from</span>
-            <DateTimeField @bind-DateTime="_from" />
-            <span>to</span>
-            <DateTimeField @bind-DateTime="_to" />
-            <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
-        </div>
-    }
-
-    @if (IsRelativeChecked)
-    {
-        <div class="filter-by-time">
-            <span>last</span>
-            <SelectList Data="@_relativeOptions" TextField="@(item => item.Text)" ValueField="@(item => item.Value)" SelectedValueChanged="@OnRelativeTimeChanged" />
-            <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
-        </div>
-    }
-
-    <HistoryCharts @ref="_historyCharts" />
 </CascadingValue>
 
 @code {

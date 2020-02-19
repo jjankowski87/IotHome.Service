@@ -3,22 +3,29 @@
 @using IotHome.Service.Model
 @inject IReadingsService ReadingsService;
 
-<div>
-    @foreach (var (sensorType, sensorData) in _chartData)
-    {
-        <h3>@sensorType</h3>
-        <div class="line-selector">
-            @foreach (var (sensorSelector, readings) in sensorData)
-            {
-                <span class="@readings.Color.Name">
-                    <CheckEdit IsInline="true" Checked="@sensorSelector.IsChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(async check => await OnChartLineCheckChanged(check, sensorType, sensorSelector))">@sensorSelector.Value</CheckEdit>
-                </span>
-            }
-        </div>
-
-        <DecimalChart @ref="_charts[sensorType]" ChartData="@sensorData" />
-    }
+@foreach (var (sensorType, sensorData) in _chartData)
+{
+<div class="chart-card col-12 col-xl-6">
+    <Card>
+        <CardBody>
+            <CardTitle Size="5">@sensorType</CardTitle>
+            <CardSubtitle>
+                <div class="line-selector">
+                    @foreach (var (sensorSelector, readings) in sensorData)
+                    {
+                        <span class="@readings.Color.Name">
+                            <CheckEdit IsInline="true" Checked="@sensorSelector.IsChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(async check => await OnChartLineCheckChanged(check, sensorType, sensorSelector))">@sensorSelector.Value</CheckEdit>
+                        </span>
+                    }
+                </div>
+            </CardSubtitle>
+            <CardText>
+                <DecimalChart @ref="_charts[sensorType]" ChartData="@sensorData" />
+            </CardText>
+        </CardBody>
+    </Card>
 </div>
+}
 
 @code {
     private static readonly IList<MyChartColor> _colors = new[]
@@ -54,7 +61,6 @@
         using (Spinner.ShowSpinner())
         {
             var previousSelections = _chartData.SelectMany(d => d.Value.Select(dd => new Selection(d.Key, dd.Key))).ToList();
-
             var readings = await ReadingsService.GetReadingsAsync(from, to);
 
             _chartData = readings.GroupBy(r => r.Key.Type)
