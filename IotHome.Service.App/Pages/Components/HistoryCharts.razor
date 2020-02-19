@@ -1,0 +1,68 @@
+﻿@using IotHome.Service.App.Models
+@using IotHome.Service.App.Services.Interfaces
+@using IotHome.Service.Model
+@inject IReadingsService ReadingsService;
+
+<div>
+    @foreach (var (sensorType, sensorData) in _data)
+    {
+        <h3>@sensorType</h3>
+        <div class="line-selector">
+            @foreach (var (data, color) in sensorData.Zip(Colors))
+            {
+                <span class="@color.Name">
+                    <CheckEdit IsInline="true" Checked="@data.Key.IsChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(async check => await OnChartLineCheckChanged(check, sensorType, data.Key))">@data.Key.Value</CheckEdit>
+                </span>
+            }
+        </div>
+
+        <DecimalChart @ref="_charts[sensorType]" Colors="@Colors" Data="@sensorData" />
+    }
+</div>
+
+@code {
+    private static readonly IList<MyChartColor> Colors = new[]
+    {
+        new MyChartColor("red", 255, 99, 132),
+        new MyChartColor("blue", 54, 162, 235),
+        new MyChartColor("yellow", 255, 206, 86),
+        new MyChartColor("navy", 75, 192, 192),
+        new MyChartColor("purple", 153, 102, 255),
+        new MyChartColor("orange", 255, 159, 64)
+    };
+
+    private IDictionary<string, DecimalChart> _charts = new Dictionary<string, DecimalChart>();
+    private IDictionary<string, Dictionary<CheckboxValue<string>, IList<SensorReading>>> _data = new Dictionary<string, Dictionary<CheckboxValue<string>, IList<SensorReading>>>();
+
+    [CascadingParameter]
+    public Spinner Spinner { get; set; }
+    
+    private async Task OnChartLineCheckChanged(bool check, string sensorType, CheckboxValue<string> checkboxValue)
+    {
+        var group = _data.FirstOrDefault(d => d.Key == sensorType);
+        var checkbox = group.Value?.FirstOrDefault(d => d.Key.Value == checkboxValue.Value).Key;
+        if (checkbox != null)
+        {
+            checkbox.IsChecked = check;
+        }
+
+        await _charts[sensorType].RefreshChartAsync(_data[sensorType]);
+    }
+
+    public async Task ShowCharts(DateTime from, DateTime to)
+    {
+        using (Spinner.ShowSpinner())
+        {
+            var selection = _data.SelectMany(d => d.Value.Select(dd => new { Type = d.Key, Name = dd.Key.Value, IsChecked = dd.Key.IsChecked })).ToList();
+
+            var readings = await ReadingsService.GetReadingsAsync(from, to);
+
+            _data = readings.GroupBy(r => r.Key.Type).ToDictionary(g => g.Key, g =>
+                g.ToDictionary(gg =>
+                    new CheckboxValue<string>(gg.Key.Name, selection.FirstOrDefault(s => s.Name == gg.Key.Name && s.Type == g.Key)?.IsChecked ?? true),
+                    gg => gg.Value));
+
+            await Task.WhenAll(_charts.Select(c => c.Value.RefreshChartAsync(_data[c.Key])));
+        }
+    }
+}

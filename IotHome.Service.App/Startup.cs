@@ -19,8 +19,11 @@ namespace IotHome.Service.App
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly IWebHostEnvironment _env;
+
+        public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
+            _env = env;
             Configuration = configuration;
         }
 
@@ -31,7 +34,13 @@ namespace IotHome.Service.App
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-            services.AddServerSideBlazor();
+            services.AddServerSideBlazor().AddCircuitOptions(o =>
+            {
+                if (_env.IsDevelopment())
+                {
+                    o.DetailedErrors = true;
+                }
+            });
 
             services.AddSingleton(GetConfiguration<StorageConfiguration>("StorageConfiguration"));
             services.AddSingleton(GetConfiguration<RawAppConfiguration>("AppConfiguration"));

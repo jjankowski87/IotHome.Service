@@ -4,7 +4,9 @@
 @using IotHome.Service.App.Services.Interfaces
 @using IotHome.Service.Model
 @using IotHome.Service.App.Pages.Components;
+@using IotHome.Service.App.Utils
 @inject IReadingsNotifier ReadingsNotifier;
+@inject IDateTimeProvider DateTimeProvider;
 @implements IDisposable;
 
 <Spinner @ref="_spinner" />
@@ -34,7 +36,7 @@
         </div>
     }
 
-    <MyChart @ref="_decimalChart" />
+    <HistoryCharts @ref="_historyCharts" />
 </CascadingValue>
 
 @code {
@@ -45,7 +47,7 @@
     };
 
     private Spinner _spinner;
-    private MyChart _decimalChart;
+    private HistoryCharts _historyCharts;
 
     private int _relativeMinutes = _relativeOptions.First().Value;
     private FilterType _filterType = FilterType.Relative;
@@ -90,14 +92,14 @@
         // TODO: set max window size (maybe 1 week)
         if (IsAbsoluteChecked && _to >= _from)
         {
-            await _decimalChart.ShowChart(_from, _to);
+            await _historyCharts.ShowCharts(_from, _to);
             return;
         }
 
         if (IsRelativeChecked)
         {
-            var now = DateTime.UtcNow;
-            await _decimalChart.ShowChart(now.AddMinutes(-_relativeMinutes), now);
+            var now = DateTimeProvider.Now.UtcDateTime;
+            await _historyCharts.ShowCharts(now.AddMinutes(-_relativeMinutes), now);
         }
     }
 
