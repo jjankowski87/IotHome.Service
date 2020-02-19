@@ -4,37 +4,46 @@
 @using IotHome.Service.App.Services.Interfaces
 @using IotHome.Service.Model
 @using IotHome.Service.App.Pages.Components;
+@using IotHome.Service.App.Utils
 @inject IReadingsNotifier ReadingsNotifier;
+@inject IDateTimeProvider DateTimeProvider;
 @implements IDisposable;
 
 <Spinner @ref="_spinner" />
 <CascadingValue Value="_spinner">
-    <div class="select-filter-type">
-        <CheckEdit RadioGroup="filterType" Checked="@IsRelativeChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Relative))">Relative</CheckEdit>
-        <CheckEdit RadioGroup="filterType" Checked="@IsAbsoluteChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Absolute))">Absolute</CheckEdit>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="select-filter-type">
+                    <CheckEdit RadioGroup="filterType" Checked="@IsRelativeChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Relative))">Relative</CheckEdit>
+                    <CheckEdit RadioGroup="filterType" Checked="@IsAbsoluteChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(check => OnFilterTypeChanged(check, FilterType.Absolute))">Absolute</CheckEdit>
+                </div>
+
+                @if (IsAbsoluteChecked)
+                {
+                    <div class="filter-by-date">
+                        <span>from</span>
+                        <DateTimeField @bind-DateTime="_from" />
+                        <span>to</span>
+                        <DateTimeField @bind-DateTime="_to" />
+                        <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
+                    </div>
+                }
+
+                @if (IsRelativeChecked)
+                {
+                    <div class="filter-by-time">
+                        <span>last</span>
+                        <SelectList Data="@_relativeOptions" TextField="@(item => item.Text)" ValueField="@(item => item.Value)" SelectedValueChanged="@OnRelativeTimeChanged" />
+                        <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <HistoryCharts @ref="_historyCharts" />
+        </div>
     </div>
-
-    @if (IsAbsoluteChecked)
-    {
-        <div class="filter-by-date">
-            <span>from</span>
-            <DateTimeField @bind-DateTime="_from" />
-            <span>to</span>
-            <DateTimeField @bind-DateTime="_to" />
-            <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
-        </div>
-    }
-
-    @if (IsRelativeChecked)
-    {
-        <div class="filter-by-time">
-            <span>last</span>
-            <SelectList Data="@_relativeOptions" TextField="@(item => item.Text)" ValueField="@(item => item.Value)" SelectedValueChanged="@OnRelativeTimeChanged" />
-            <Button Color="Color.Info" Clicked="@OnFilterClicked">Filter</Button>
-        </div>
-    }
-
-    <MyChart @ref="_decimalChart" />
 </CascadingValue>
 
 @code {
@@ -45,7 +54,7 @@
     };
 
     private Spinner _spinner;
-    private MyChart _decimalChart;
+    private HistoryCharts _historyCharts;
 
     private int _relativeMinutes = _relativeOptions.First().Value;
     private FilterType _filterType = FilterType.Relative;
@@ -60,12 +69,14 @@
         ReadingsNotifier.NewReadingsAppeared += OnNewReadingsAppeared;
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             // Force refresh spinner to child components
             StateHasChanged();
+
+            await OnFilterClicked();
         }
     }
 
@@ -90,14 +101,14 @@
         // TODO: set max window size (maybe 1 week)
         if (IsAbsoluteChecked && _to >= _from)
         {
-            await _decimalChart.ShowChart(_from, _to);
+            await _historyCharts.ShowCharts(_from, _to);
             return;
         }
 
         if (IsRelativeChecked)
         {
-            var now = DateTime.UtcNow;
-            await _decimalChart.ShowChart(now.AddMinutes(-_relativeMinutes), now);
+            var now = DateTimeProvider.Now.UtcDateTime;
+            await _historyCharts.ShowCharts(now.AddMinutes(-_relativeMinutes), now);
         }
     }
 

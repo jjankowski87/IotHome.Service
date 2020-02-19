@@ -296,3 +296,12 @@ span.orange .custom-checkbox .custom-control-input:checked:focus ~ .custom-contr
 .custom-checkbox .custom-control-input:active ~ .custom-control-label::before {
     background-color: #C8FFC8;
 }
+
+div.chart-card {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+div.card .card-title {
+    text-transform: capitalize;
+}
