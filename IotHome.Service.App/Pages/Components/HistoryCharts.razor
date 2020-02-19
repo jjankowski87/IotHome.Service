@@ -4,24 +4,24 @@
 @inject IReadingsService ReadingsService;
 
 <div>
-    @foreach (var (sensorType, sensorData) in _data)
+    @foreach (var (sensorType, sensorData) in _chartData)
     {
         <h3>@sensorType</h3>
         <div class="line-selector">
-            @foreach (var (data, color) in sensorData.Zip(Colors))
+            @foreach (var (sensorSelector, readings) in sensorData)
             {
-                <span class="@color.Name">
-                    <CheckEdit IsInline="true" Checked="@data.Key.IsChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(async check => await OnChartLineCheckChanged(check, sensorType, data.Key))">@data.Key.Value</CheckEdit>
+                <span class="@readings.Color.Name">
+                    <CheckEdit IsInline="true" Checked="@sensorSelector.IsChecked" Cursor="@Cursor.Pointer" CheckedChanged="@(async check => await OnChartLineCheckChanged(check, sensorType, sensorSelector))">@sensorSelector.Value</CheckEdit>
                 </span>
             }
         </div>
 
-        <DecimalChart @ref="_charts[sensorType]" Colors="@Colors" Data="@sensorData" />
+        <DecimalChart @ref="_charts[sensorType]" ChartData="@sensorData" />
     }
 </div>
 
 @code {
-    private static readonly IList<MyChartColor> Colors = new[]
+    private static readonly IList<MyChartColor> _colors = new[]
     {
         new MyChartColor("red", 255, 99, 132),
         new MyChartColor("blue", 54, 162, 235),
@@ -32,37 +32,61 @@
     };
 
     private IDictionary<string, DecimalChart> _charts = new Dictionary<string, DecimalChart>();
-    private IDictionary<string, Dictionary<CheckboxValue<string>, IList<SensorReading>>> _data = new Dictionary<string, Dictionary<CheckboxValue<string>, IList<SensorReading>>>();
+    private IDictionary<string, ChartData> _chartData = new Dictionary<string, ChartData>();
 
     [CascadingParameter]
     public Spinner Spinner { get; set; }
-    
+
     private async Task OnChartLineCheckChanged(bool check, string sensorType, CheckboxValue<string> checkboxValue)
     {
-        var group = _data.FirstOrDefault(d => d.Key == sensorType);
+        var group = _chartData.FirstOrDefault(d => d.Key == sensorType);
         var checkbox = group.Value?.FirstOrDefault(d => d.Key.Value == checkboxValue.Value).Key;
         if (checkbox != null)
         {
             checkbox.IsChecked = check;
         }
 
-        await _charts[sensorType].RefreshChartAsync(_data[sensorType]);
+        await _charts[sensorType].RefreshChartAsync(_chartData[sensorType]);
     }
 
     public async Task ShowCharts(DateTime from, DateTime to)
     {
         using (Spinner.ShowSpinner())
         {
-            var selection = _data.SelectMany(d => d.Value.Select(dd => new { Type = d.Key, Name = dd.Key.Value, IsChecked = dd.Key.IsChecked })).ToList();
+            var previousSelections = _chartData.SelectMany(d => d.Value.Select(dd => new Selection(d.Key, dd.Key))).ToList();
 
             var readings = await ReadingsService.GetReadingsAsync(from, to);
 
-            _data = readings.GroupBy(r => r.Key.Type).ToDictionary(g => g.Key, g =>
-                g.ToDictionary(gg =>
-                    new CheckboxValue<string>(gg.Key.Name, selection.FirstOrDefault(s => s.Name == gg.Key.Name && s.Type == g.Key)?.IsChecked ?? true),
-                    gg => gg.Value));
+            _chartData = readings.GroupBy(r => r.Key.Type)
+                .ToDictionary(group => group.Key, group => ChartData(group.Key, group, previousSelections));
 
-            await Task.WhenAll(_charts.Select(c => c.Value.RefreshChartAsync(_data[c.Key])));
+            await Task.WhenAll(_charts.Select(c => c.Value.RefreshChartAsync(_chartData[c.Key])));
         }
+    }
+
+    private static ChartData ChartData(string sensorType,
+        IEnumerable<KeyValuePair<SensorDetails, IList<SensorReading>>> sensorData,
+        IEnumerable<Selection> previousSelection)
+    {
+        return new ChartData(sensorData.Select(d => new KeyValuePair<ChartSensorSelector, IEnumerable<SensorReading>>(
+            new ChartSensorSelector(d.Key.Name, previousSelection.FirstOrDefault(s => s.SensorName == d.Key.Name && s.SensorType == sensorType)?.IsSelected ?? true),
+            d.Value)), _colors);
+    }
+
+    private class Selection
+    {
+        public Selection(string sensorType, ChartSensorSelector sensorSelector)
+        {
+            SensorType = sensorType;
+            SensorName = sensorSelector.Value;
+            IsSelected = sensorSelector.IsChecked;
+        }
+
+        public string SensorType { get; }
+
+        public string SensorName { get; }
+
+        public bool IsSelected { get; }
+
     }
 }

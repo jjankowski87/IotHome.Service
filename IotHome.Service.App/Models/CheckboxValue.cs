@@ -10,6 +10,6 @@
 
         public bool IsChecked { get; set; }
 
-        public TItem Value { get; set; }
+        public TItem Value { get; }
     }
 }
