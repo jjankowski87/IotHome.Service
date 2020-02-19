@@ -17,6 +17,5 @@ namespace IotHome.Service.App.Models
 
         public IEnumerable<(string, ChartReadings)> SelectedReadings =>
             this.Where(d => d.Key.IsChecked).Select(d => (d.Key.Value, d.Value));
-
     }
 }

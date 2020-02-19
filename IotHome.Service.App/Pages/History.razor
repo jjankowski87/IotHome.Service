@@ -69,12 +69,14 @@
         ReadingsNotifier.NewReadingsAppeared += OnNewReadingsAppeared;
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             // Force refresh spinner to child components
             StateHasChanged();
+
+            await OnFilterClicked();
         }
     }
 

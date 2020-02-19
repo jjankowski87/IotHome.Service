@@ -1,4 +1,5 @@
-﻿@using IotHome.Service.App.Models
+﻿@using System.Collections.ObjectModel
+@using IotHome.Service.App.Models
 @using IotHome.Service.App.Services.Interfaces
 @using IotHome.Service.Model
 @inject IReadingsService ReadingsService;
@@ -39,7 +40,8 @@
     };
 
     private IDictionary<string, DecimalChart> _charts = new Dictionary<string, DecimalChart>();
-    private IDictionary<string, ChartData> _chartData = new Dictionary<string, ChartData>();
+
+    private IDictionary<string, ChartData> _chartData { get; set; } = new Dictionary<string, ChartData>();
 
     [CascadingParameter]
     public Spinner Spinner { get; set; }
@@ -67,6 +69,7 @@
                 .ToDictionary(group => group.Key, group => ChartData(group.Key, group, previousSelections));
 
             await Task.WhenAll(_charts.Select(c => c.Value.RefreshChartAsync(_chartData[c.Key])));
+            StateHasChanged();
         }
     }
 

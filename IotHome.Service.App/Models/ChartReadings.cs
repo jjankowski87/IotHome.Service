@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using IotHome.Service.Model;
 
@@ -18,6 +19,20 @@ namespace IotHome.Service.App.Models
 
         public IEnumerable<decimal?> Values => _readings.Select(r => r.Value);
 
-        public IEnumerable<string> Labels => _readings.Select(r => r.Date.ToString("yyyy-MM-dd HH:mm"));
+        public IEnumerable<string> Labels => _readings.Select(r => r.Date.ToString(GetTimeFormat()));
+
+        private string GetTimeFormat()
+        {
+            if (_readings.Any())
+            {
+                var span = _readings.Last().Date - _readings.First().Date;
+                if (span <= TimeSpan.FromDays(1))
+                {
+                    return "HH:mm";
+                }
+            }
+
+            return "yyyy-MM-dd HH:mm";
+        }
     }
 }

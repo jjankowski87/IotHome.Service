@@ -301,3 +301,7 @@ div.chart-card {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
+div.card .card-title {
+    text-transform: capitalize;
+}
