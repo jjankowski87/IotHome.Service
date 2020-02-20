@@ -52,7 +52,7 @@ namespace IotHome.Service.App.Services
             var from = NormalizeDateTime(fromDate, samplingWindow);
             var to = NormalizeDateTime(toDate, samplingWindow);
 
-            var readings = await _storageExplorer.ListSensorDetailsAsync(@from, to);
+            var readings = await _storageExplorer.ListSensorDetailsAsync(from.AddMinutes(-samplingWindow), to.AddMinutes(samplingWindow));
 
             return readings.GroupBy(r => new SensorDetails(r.Body.Sensor, r.Body.Name))
                 .ToDictionary(g => g.Key, g => (IList<SensorReading>)AdjustReadings(g.ToList(), from, to, samplingWindow).ToList());
@@ -63,13 +63,28 @@ namespace IotHome.Service.App.Services
             var window = (to - from).TotalMinutes;
 
             var result = new List<SensorReading>();
+            var lastIndex = 0;
+            var index = 0;
+
             foreach (var readingTime in Enumerable.Range(0, (int)Math.Ceiling(window / samplingWindow) + 1).Select(i => from.AddMinutes(i * samplingWindow)))
             {
                 var matching = readings.Where(r => Math.Abs((r.EnqueuedTimeUtc - readingTime).TotalMinutes) <= Math.Ceiling(samplingWindow / 2f)).ToList();
                 var localTime = TimeZoneInfo.ConvertTime(readingTime, _configuration.ApplicationTimeZone);
 
-                result.Add(new SensorReading(localTime,
-                    matching.Any() ? Math.Round(matching.Average(m => m.Body.Value), 2) : (decimal?) null));
+                var readingValue = matching.Any() ? Math.Round(matching.Average(m => m.Body.Value), 1) : (decimal?) null;
+                result.Add(new SensorReading(localTime, readingValue));
+
+                if (readingValue != null)
+                {
+                    lastIndex = index;
+                }
+
+                index++;
+            }
+
+            while (result.Count - 1 > lastIndex)
+            {
+                result.RemoveAt(result.Count - 1);
             }
 
             return result;

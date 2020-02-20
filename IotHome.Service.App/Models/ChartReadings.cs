@@ -7,25 +7,26 @@ namespace IotHome.Service.App.Models
 {
     public class ChartReadings
     {
-        private readonly IList<SensorReading> _readings;
-
         public ChartReadings(MyChartColor color, IEnumerable<SensorReading> readings)
         {
             Color = color;
-            _readings = readings.ToList();
+
+            var list = readings.ToList();
+            Values = list.Select(r => r.Value).ToList();
+            Labels = list.Select(r => r.Date.ToString(GetTimeFormat(list))).ToList();
         }
 
         public MyChartColor Color { get; }
 
-        public IEnumerable<decimal?> Values => _readings.Select(r => r.Value);
+        public IList<decimal?> Values { get; }
 
-        public IEnumerable<string> Labels => _readings.Select(r => r.Date.ToString(GetTimeFormat()));
+        public IList<string> Labels { get; }
 
-        private string GetTimeFormat()
+        private string GetTimeFormat(IList<SensorReading> readings)
         {
-            if (_readings.Any())
+            if (readings.Any())
             {
-                var span = _readings.Last().Date - _readings.First().Date;
+                var span = readings.Last().Date - readings.First().Date;
                 if (span <= TimeSpan.FromDays(1))
                 {
                     return "HH:mm";
