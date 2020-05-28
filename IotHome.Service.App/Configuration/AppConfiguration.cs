@@ -8,10 +8,13 @@ namespace IotHome.Service.App.Configuration
         {
             ApplicationTimeZone = TimeZoneInfo.FindSystemTimeZoneById(config.ApplicationTimeZone);
             Secret = config.Secret;
+            ReadingsSamplingMinutes = config.ReadingsSamplingMinutes;
         }
 
         public TimeZoneInfo ApplicationTimeZone { get; }
 
         public string Secret { get; }
+
+        public int ReadingsSamplingMinutes { get; }
     }
 }
