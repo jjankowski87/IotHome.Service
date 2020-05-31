@@ -75,7 +75,6 @@ namespace IotHome.Service.App
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
