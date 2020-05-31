@@ -44,9 +44,13 @@ namespace IotHome.Service.ReadingsMonitor
             }
 
             var messages = await _storageHelper.ListMessagesAsync(blobPath.Replace(_blobPrefix, string.Empty));
-            
-            await Task.WhenAll(messages.Select(m =>
-                _appNotifier.NotifyNewReadingAsync(m.EnqueuedTimeUtc, m.Body, log)));
+
+            // TODO: group notify all readings
+            var firstMessage = messages.FirstOrDefault();
+            if (firstMessage != null)
+            {
+                await _appNotifier.NotifyNewReadingAsync(firstMessage.EnqueuedTimeUtc, firstMessage.Body, log);
+            }
         }
     }
 }
