@@ -15,7 +15,6 @@ namespace IotHome.Service.App.Services
         private const int DefaultWindowMinutes = 60;
         private static readonly IDictionary<TimeSpan, TimeSpan> SamplingWindows = new Dictionary<TimeSpan, TimeSpan>
         {
-            { TimeSpan.FromHours(2), TimeSpan.FromMinutes(5) },
             { TimeSpan.FromHours(4), TimeSpan.FromMinutes(10) },
             { TimeSpan.FromHours(8), TimeSpan.FromMinutes(15) },
             { TimeSpan.FromHours(24), TimeSpan.FromMinutes(30) }
